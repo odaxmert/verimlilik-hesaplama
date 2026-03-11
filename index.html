@@ -1,0 +1,399 @@
+<!DOCTYPE html>
+<html lang="tr">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description" content="Temsilci çalışma verimliliğini hesaplayan profesyonel araç">
+    <title>Verimlilik Hesaplama Sistemi</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap"
+        rel="stylesheet">
+    <link rel="stylesheet" href="style.css">
+</head>
+
+<body>
+    <!-- Header -->
+    <header class="header">
+        <div class="header-left">
+            <div class="logo">
+                <svg width="32" height="32" viewBox="0 0 32 32" fill="none">
+                    <rect width="32" height="32" rx="8" fill="url(#logoGrad)" />
+                    <path d="M8 16L14 22L24 10" stroke="white" stroke-width="3" stroke-linecap="round"
+                        stroke-linejoin="round" />
+                    <defs>
+                        <linearGradient id="logoGrad" x1="0" y1="0" x2="32" y2="32">
+                            <stop stop-color="#6366F1" />
+                            <stop offset="1" stop-color="#8B5CF6" />
+                        </linearGradient>
+                    </defs>
+                </svg>
+                <h1>Verimlilik Sistemi</h1>
+            </div>
+        </div>
+        <div class="header-right">
+            <button class="btn btn-secondary" id="btnYeniTemsilci" onclick="openModal('temsilciModal')">
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+                    stroke-linecap="round" stroke-linejoin="round">
+                    <path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2" />
+                    <circle cx="9" cy="7" r="4" />
+                    <line x1="19" y1="8" x2="19" y2="14" />
+                    <line x1="16" y1="11" x2="22" y2="11" />
+                </svg>
+                Yeni Temsilci Ekle
+            </button>
+            <button class="btn btn-primary" id="btnYeniData" onclick="openModal('dataModal')">
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+                    stroke-linecap="round" stroke-linejoin="round">
+                    <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z" />
+                    <polyline points="14 2 14 8 20 8" />
+                    <line x1="12" y1="18" x2="12" y2="12" />
+                    <line x1="9" y1="15" x2="15" y2="15" />
+                </svg>
+                Yeni Data Ekle
+            </button>
+        </div>
+    </header>
+
+    <div class="main-layout">
+        <!-- Sidebar -->
+        <aside class="sidebar">
+            <nav class="sidebar-nav">
+                <button class="nav-item active" id="navVerimllikHesapla" onclick="switchPage('hesapla')">
+                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+                        stroke-linecap="round" stroke-linejoin="round">
+                        <rect x="4" y="4" width="16" height="16" rx="2" />
+                        <path d="M9 9h6M9 13h6M9 17h4" />
+                    </svg>
+                    <span>Verimlilik Hesapla</span>
+                </button>
+                <button class="nav-item" id="navGecmisVeriler" onclick="switchPage('gecmis')">
+                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+                        stroke-linecap="round" stroke-linejoin="round">
+                        <circle cx="12" cy="12" r="10" />
+                        <polyline points="12 6 12 12 16 14" />
+                    </svg>
+                    <span>Geçmiş Veriler</span>
+                </button>
+            </nav>
+
+            <!-- Sidebar Stats -->
+            <div class="sidebar-stats">
+                <div class="stat-card">
+                    <span class="stat-label">Toplam Temsilci</span>
+                    <span class="stat-value" id="statTemsilci">0</span>
+                </div>
+                <div class="stat-card">
+                    <span class="stat-label">Toplam Data</span>
+                    <span class="stat-value" id="statData">0</span>
+                </div>
+                <div class="stat-card">
+                    <span class="stat-label">Toplam Hesaplama</span>
+                    <span class="stat-value" id="statHesaplama">0</span>
+                </div>
+            </div>
+        </aside>
+
+        <!-- Main Content -->
+        <main class="content">
+            <!-- Verimlilik Hesapla Page -->
+            <section class="page active" id="pageHesapla">
+                <div class="page-header">
+                    <h2>Verimlilik Hesapla</h2>
+                    <p>Temsilci performansını analiz edin ve verimlilik oranını hesaplayın</p>
+                </div>
+
+                <div class="form-container">
+                    <div class="form-grid">
+                        <!-- Temsilci Seçimi -->
+                        <div class="form-group">
+                            <label for="selTemsilci">
+                                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                                    stroke-width="2">
+                                    <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2" />
+                                    <circle cx="12" cy="7" r="4" />
+                                </svg>
+                                Temsilci Adı Soyadı
+                            </label>
+                            <select id="selTemsilci" required>
+                                <option value="">Temsilci seçin...</option>
+                            </select>
+                        </div>
+
+                        <!-- Aranan Data -->
+                        <div class="form-group">
+                            <label for="selData">
+                                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                                    stroke-width="2">
+                                    <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z" />
+                                    <polyline points="14 2 14 8 20 8" />
+                                </svg>
+                                Aranan Data
+                            </label>
+                            <select id="selData" required>
+                                <option value="">Data seçin...</option>
+                            </select>
+                        </div>
+
+                        <!-- Data Başlangıç -->
+                        <div class="form-group">
+                            <label for="dtBaslangic">
+                                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                                    stroke-width="2">
+                                    <rect x="3" y="4" width="18" height="18" rx="2" ry="2" />
+                                    <line x1="16" y1="2" x2="16" y2="6" />
+                                    <line x1="8" y1="2" x2="8" y2="6" />
+                                    <line x1="3" y1="10" x2="21" y2="10" />
+                                </svg>
+                                Data Başlangıç
+                            </label>
+                            <input type="datetime-local" id="dtBaslangic" required>
+                        </div>
+
+                        <!-- Data Bitiş -->
+                        <div class="form-group">
+                            <label for="dtBitis">
+                                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                                    stroke-width="2">
+                                    <rect x="3" y="4" width="18" height="18" rx="2" ry="2" />
+                                    <line x1="16" y1="2" x2="16" y2="6" />
+                                    <line x1="8" y1="2" x2="8" y2="6" />
+                                    <line x1="3" y1="10" x2="21" y2="10" />
+                                </svg>
+                                Data Bitiş
+                            </label>
+                            <input type="datetime-local" id="dtBitis" required>
+                        </div>
+
+                        <!-- Toplam Yapılan Arama -->
+                        <div class="form-group">
+                            <label for="txtToplamArama">
+                                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                                    stroke-width="2">
+                                    <path
+                                        d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72 12.84 12.84 0 0 0 .7 2.81 2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45 12.84 12.84 0 0 0 2.81.7A2 2 0 0 1 22 16.92z" />
+                                </svg>
+                                Toplam Yapılan Arama
+                            </label>
+                            <input type="number" id="txtToplamArama" placeholder="Örn: 74" min="0" required>
+                        </div>
+
+                        <!-- Ulaşılan Arama -->
+                        <div class="form-group">
+                            <label for="txtUlasilanArama">
+                                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                                    stroke-width="2">
+                                    <path d="M22 11.08V12a10 10 0 1 1-5.93-9.14" />
+                                    <polyline points="22 4 12 14.01 9 11.01" />
+                                </svg>
+                                Ulaşılan Arama
+                            </label>
+                            <input type="number" id="txtUlasilanArama" placeholder="Örn: 36" min="0" required>
+                        </div>
+
+                        <!-- OB ACHT -->
+                        <div class="form-group full-width">
+                            <label for="txtObAcht">
+                                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                                    stroke-width="2">
+                                    <circle cx="12" cy="12" r="10" />
+                                    <line x1="12" y1="8" x2="12" y2="12" />
+                                    <line x1="12" y1="16" x2="12.01" y2="16" />
+                                </svg>
+                                OB ACHT
+                            </label>
+                            <input type="number" id="txtObAcht" placeholder="Örn: 198" min="0" required>
+                        </div>
+                    </div>
+
+                    <button class="btn btn-calculate" id="btnHesapla" onclick="hesaplaVerimlilik()">
+                        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                            stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                            <polyline points="22 12 18 12 15 21 9 3 6 12 2 12" />
+                        </svg>
+                        Verimlilik Hesapla
+                    </button>
+                </div>
+
+                <!-- Result Section -->
+                <div class="result-section hidden" id="resultSection">
+                    <div class="result-header">
+                        <h3>Hesaplama Sonucu</h3>
+                    </div>
+                    <div class="result-grid">
+                        <div class="result-card">
+                            <span class="result-label">Toplam Süre</span>
+                            <span class="result-value" id="rToplamSure">-</span>
+                            <span class="result-unit">saniye</span>
+                        </div>
+                        <div class="result-card">
+                            <span class="result-label">Mola Süresi</span>
+                            <span class="result-value" id="rMolaSure">-</span>
+                            <span class="result-unit">saniye</span>
+                        </div>
+                        <div class="result-card">
+                            <span class="result-label">Çalışma Süresi</span>
+                            <span class="result-value" id="rCalismaSure">-</span>
+                            <span class="result-unit">saniye</span>
+                        </div>
+                        <div class="result-card">
+                            <span class="result-label">Ulaşım Oranı</span>
+                            <span class="result-value" id="rUlasimOrani">-</span>
+                            <span class="result-unit"></span>
+                        </div>
+                        <div class="result-card">
+                            <span class="result-label">Ek Konuşma Yükü</span>
+                            <span class="result-value" id="rEkKonusma">-</span>
+                            <span class="result-unit"></span>
+                        </div>
+                        <div class="result-card">
+                            <span class="result-label">NET ACHT</span>
+                            <span class="result-value" id="rNetAcht">-</span>
+                            <span class="result-unit"></span>
+                        </div>
+                        <div class="result-card">
+                            <span class="result-label">Beklenen Arama Hedefi</span>
+                            <span class="result-value" id="rBeklenenHedef">-</span>
+                            <span class="result-unit">arama</span>
+                        </div>
+                        <div class="result-card highlight">
+                            <span class="result-label">Verimlilik Oranı</span>
+                            <span class="result-value big" id="rVerimlilik">-</span>
+                            <span class="result-unit"></span>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <!-- Geçmiş Veriler Page -->
+            <section class="page" id="pageGecmis">
+                <div class="page-header">
+                    <h2>Geçmiş Veriler</h2>
+                    <p>Tarih seçerek o güne ait verimlilik verilerini Excel olarak indirin</p>
+                </div>
+
+                <div class="filter-bar">
+                    <div class="filter-group">
+                        <label for="filterTarih">Tarih Seçin</label>
+                        <input type="date" id="filterTarih">
+                    </div>
+                    <button class="btn btn-excel" id="btnExcelIndir" onclick="excelIndir()">
+                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                            stroke-width="2">
+                            <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4" />
+                            <polyline points="7 10 12 15 17 10" />
+                            <line x1="12" y1="15" x2="12" y2="3" />
+                        </svg>
+                        Excel ile İndir
+                    </button>
+                </div>
+
+                <div class="gecmis-info-card">
+                    <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"
+                        stroke-linecap="round" stroke-linejoin="round">
+                        <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z" />
+                        <polyline points="14 2 14 8 20 8" />
+                        <line x1="16" y1="13" x2="8" y2="13" />
+                        <line x1="16" y1="17" x2="8" y2="17" />
+                        <polyline points="10 9 9 9 8 9" />
+                    </svg>
+                    <h3>Verileri Excel Olarak İndirin</h3>
+                    <p>Yukarıdan tarih seçip <strong>Excel ile İndir</strong> butonuna tıklayarak seçtiğiniz tarihe ait
+                        tüm verimlilik verilerini indirebilirsiniz.</p>
+                    <div class="info-stats">
+                        <div class="info-stat">
+                            <span class="info-stat-value" id="gecmisKayitSayisi">0</span>
+                            <span class="info-stat-label">Toplam Kayıt</span>
+                        </div>
+                    </div>
+                </div>
+            </section>
+        </main>
+    </div>
+
+    <!-- Temsilci Ekleme Modal -->
+    <div class="modal-overlay" id="temsilciModal">
+        <div class="modal">
+            <div class="modal-header">
+                <h3>Yeni Temsilci Ekle</h3>
+                <button class="modal-close" onclick="closeModal('temsilciModal')">
+                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <line x1="18" y1="6" x2="6" y2="18" />
+                        <line x1="6" y1="6" x2="18" y2="18" />
+                    </svg>
+                </button>
+            </div>
+            <div class="modal-body">
+                <div class="form-group">
+                    <label for="txtTemsilciAdi">Temsilci Adı Soyadı</label>
+                    <input type="text" id="txtTemsilciAdi" placeholder="Örn: Ahmet Yılmaz" autofocus>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button class="btn btn-ghost" onclick="closeModal('temsilciModal')">İptal</button>
+                <button class="btn btn-primary" id="btnTemsilciKaydet" onclick="temsilciEkle()">
+                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <polyline points="20 6 9 17 4 12" />
+                    </svg>
+                    Kaydet
+                </button>
+            </div>
+
+            <!-- Temsilci Listesi -->
+            <div class="modal-list">
+                <h4>Mevcut Temsilciler</h4>
+                <ul id="temsilciListesi"></ul>
+            </div>
+        </div>
+    </div>
+
+    <!-- Data Ekleme Modal -->
+    <div class="modal-overlay" id="dataModal">
+        <div class="modal">
+            <div class="modal-header">
+                <h3>Yeni Data Ekle</h3>
+                <button class="modal-close" onclick="closeModal('dataModal')">
+                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <line x1="18" y1="6" x2="6" y2="18" />
+                        <line x1="6" y1="6" x2="18" y2="18" />
+                    </svg>
+                </button>
+            </div>
+            <div class="modal-body">
+                <div class="form-group">
+                    <label for="txtDataIsmi">Data İsmi</label>
+                    <input type="text" id="txtDataIsmi" placeholder="Örn: Kampanya A">
+                </div>
+                <div class="form-group">
+                    <label for="txtGecisToplami">Geçiş Toplamı</label>
+                    <input type="number" id="txtGecisToplami" placeholder="Örn: 79" min="0">
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button class="btn btn-ghost" onclick="closeModal('dataModal')">İptal</button>
+                <button class="btn btn-primary" id="btnDataKaydet" onclick="dataEkle()">
+                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <polyline points="20 6 9 17 4 12" />
+                    </svg>
+                    Kaydet
+                </button>
+            </div>
+
+            <!-- Data Listesi -->
+            <div class="modal-list">
+                <h4>Mevcut Datalar</h4>
+                <ul id="dataListesi"></ul>
+            </div>
+        </div>
+    </div>
+
+    <!-- Toast Notification -->
+    <div class="toast-container" id="toastContainer"></div>
+
+    <!-- SheetJS for Excel export -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+    <script src="app.js"></script>
+</body>
+
+</html>
