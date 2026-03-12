@@ -403,18 +403,13 @@ function hesaplaVerimlilik() {
 
     // 8) Verimlilik = toplamArama / beklenenAramaHedefi
     const verimlilikRaw = toplamArama / beklenenAramaHedefi;
-    let verimlilikYuzdesi;
-    if (verimlilikRaw >= 1) {
-        verimlilikYuzdesi = 100;
-    } else {
-        verimlilikYuzdesi = Math.round(verimlilikRaw * 100);
-    }
+    const verimlilikYuzdesi = Math.round(verimlilikRaw * 100);
 
     // ---- SONUÇLARI GÖSTER ----
     document.getElementById('rToplamSure').textContent = Math.round(toplamSaniye).toLocaleString('tr-TR');
     document.getElementById('rMolaSure').textContent = Math.round(molaSaniyesi).toLocaleString('tr-TR');
     document.getElementById('rCalismaSure').textContent = Math.round(calismaSaniyesi).toLocaleString('tr-TR');
-    document.getElementById('rUlasimOrani').textContent = ulasimOrani.toFixed(2);
+    document.getElementById('rUlasimOrani').textContent = `%${(ulasimOrani * 100).toFixed(2)}`;
     document.getElementById('rEkKonusma').textContent = ekKonusmaYuku;
     document.getElementById('rNetAcht').textContent = netAcht;
     document.getElementById('rBeklenenHedef').textContent = beklenenAramaHedefi;
@@ -468,6 +463,37 @@ function hesaplaVerimlilik() {
 }
 
 // ==========================================
+// TARIH ARALIGI TOGGLE
+// ==========================================
+
+function toggleTarihAraligi() {
+    const chekbox = document.getElementById('chkTarihAraligi');
+    const bolumu1 = document.getElementById('tarihAraligiBolumu');
+    const bolumu2 = document.getElementById('tarihAraligiBolumu2');
+    const btnIndir = document.getElementById('btnExcelIndir');
+    const btnIndirAraligi = document.getElementById('btnExcelIndirAraligi');
+    const filterTarih = document.getElementById('filterTarih');
+
+    if (chekbox.checked) {
+        bolumu1.style.display = 'block';
+        bolumu2.style.display = 'block';
+        btnIndir.style.display = 'none';
+        btnIndirAraligi.style.display = 'inline-flex';
+        filterTarih.style.display = 'none';
+        document.querySelector('label[for="filterTarih"]').style.display = 'none';
+    } else {
+        bolumu1.style.display = 'none';
+        bolumu2.style.display = 'none';
+        btnIndir.style.display = 'inline-flex';
+        btnIndirAraligi.style.display = 'none';
+        filterTarih.style.display = 'block';
+        document.querySelector('label[for="filterTarih"]').style.display = 'block';
+        document.getElementById('filterTarihBaslangic').value = '';
+        document.getElementById('filterTarihBitis').value = '';
+    }
+}
+
+// ==========================================
 // GEÇMİŞ VERİLER - KAYIT SAYISI
 // ==========================================
 
@@ -509,19 +535,80 @@ function excelIndir() {
         return;
     }
 
-    // Sort by data name (grouped)
+    // Sort by data name (grouped), then by date
     hesaplamalar.sort((a, b) => {
         const nameCompare = a.dataIsmi.localeCompare(b.dataIsmi, 'tr');
         if (nameCompare !== 0) return nameCompare;
         return new Date(a.tarih) - new Date(b.tarih);
     });
 
-    // Build Excel data
-    const excelData = hesaplamalar.map(h => ({
-        'Arama Yapılan Data': h.dataIsmi,
-        'Temsilci Adı Soyadı': h.temsilciAdi,
-        'Verimlilik Oranı': `%${h.verimlilikOrani}`
-    }));
+    createAndDownloadExcel(hesaplamalar, secilenTarih);
+}
+
+function excelIndirAraligi() {
+    const baslangic = document.getElementById('filterTarihBaslangic').value;
+    const bitis = document.getElementById('filterTarihBitis').value;
+
+    if (!baslangic || !bitis) {
+        showToast('Lütfen başlangıç ve bitiş tarihlerini seçin', 'error');
+        return;
+    }
+
+    const dtBaslangic = new Date(baslangic);
+    const dtBitis = new Date(bitis);
+
+    if (dtBitis < dtBaslangic) {
+        showToast('Bitiş tarihi başlangıç tarihinden önce olamaz', 'error');
+        return;
+    }
+
+    let hesaplamalar = getHesaplamalar();
+
+    // Filter by date range
+    const gunBaslangic = new Date(dtBaslangic);
+    gunBaslangic.setHours(0, 0, 0, 0);
+    const gunBitis = new Date(dtBitis);
+    gunBitis.setHours(23, 59, 59, 999);
+
+    hesaplamalar = hesaplamalar.filter(h => {
+        const kayitTarihi = new Date(h.tarih);
+        return kayitTarihi >= gunBaslangic && kayitTarihi <= gunBitis;
+    });
+
+    if (hesaplamalar.length === 0) {
+        showToast('Seçilen tarih aralığında kayıt bulunamadı', 'error');
+        return;
+    }
+
+    // Sort by date (ascending - oldest to newest)
+    hesaplamalar.sort((a, b) => {
+        return new Date(a.tarih) - new Date(b.tarih);
+    });
+
+    createAndDownloadExcel(hesaplamalar, null, true);
+}
+
+function createAndDownloadExcel(hesaplamalar, secilenTarih, isAraligi = false) {
+    // Build Excel data with full format
+    const excelData = hesaplamalar.map(h => {
+        const baslangicTarihi = new Date(h.baslangic);
+        const tarihStr = baslangicTarihi.toLocaleDateString('tr-TR', {
+            year: 'numeric',
+            month: '2-digit',
+            day: '2-digit'
+        });
+        return {
+            'Tarih': tarihStr,
+            'Data Detay': h.dataIsmi,
+            'Agent': h.temsilciAdi,
+            'Beklenen Arama Adedi': h.beklenenAramaHedefi,
+            'Toplam Yapılan Arama': h.toplamArama,
+            'Ulaşılan Arama': h.ulasilanArama,
+            'OB ACHT': h.obAcht,
+            'Ulaşım Oranı': `%${(h.ulasimOrani * 100).toFixed(2)}`,
+            'Verimlilik': `%${h.verimlilikOrani}`
+        };
+    });
 
     // Create workbook
     const ws = XLSX.utils.json_to_sheet(excelData);
@@ -530,19 +617,43 @@ function excelIndir() {
 
     // Style column widths
     ws['!cols'] = [
-        { wch: 25 }, // Arama Yapılan Data
-        { wch: 30 }, // Temsilci Adı Soyadı
-        { wch: 18 }  // Verimlilik Oranı
+        { wch: 12 }, // Tarih
+        { wch: 20 }, // Data Detay
+        { wch: 20 }, // Agent
+        { wch: 18 }, // Beklenen Arama Adedi
+        { wch: 18 }, // Toplam Yapılan Arama
+        { wch: 15 }, // Ulaşılan Arama
+        { wch: 10 }, // OB ACHT
+        { wch: 15 }, // Ulaşım Oranı
+        { wch: 12 }  // Verimlilik
     ];
 
-    // Generate filename with selected date
-    const dateStr = secilenTarih.toLocaleDateString('tr-TR', {
-        day: '2-digit',
-        month: '2-digit',
-        year: 'numeric'
-    }).replace(/\./g, '-');
+    // Generate filename
+    let filename;
+    if (isAraligi) {
+        const baslangicTarihi = new Date(document.getElementById('filterTarihBaslangic').value);
+        const bitisTarihi = new Date(document.getElementById('filterTarihBitis').value);
+        const baslangicStr = baslangicTarihi.toLocaleDateString('tr-TR', {
+            day: '2-digit',
+            month: '2-digit',
+            year: 'numeric'
+        }).replace(/\./g, '-');
+        const bitisStr = bitisTarihi.toLocaleDateString('tr-TR', {
+            day: '2-digit',
+            month: '2-digit',
+            year: 'numeric'
+        }).replace(/\./g, '-');
+        filename = `Verimlilik_Raporu_${baslangicStr}_${bitisStr}.xlsx`;
+    } else {
+        const dateStr = secilenTarih.toLocaleDateString('tr-TR', {
+            day: '2-digit',
+            month: '2-digit',
+            year: 'numeric'
+        }).replace(/\./g, '-');
+        filename = `Verimlilik_Raporu_${dateStr}.xlsx`;
+    }
 
-    XLSX.writeFile(wb, `Verimlilik_Raporu_${dateStr}.xlsx`);
+    XLSX.writeFile(wb, filename);
     showToast(`${hesaplamalar.length} kayıt Excel olarak indirildi`, 'success');
 }
 
