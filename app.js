@@ -438,7 +438,7 @@ function hesaplaVerimlilik() {
     const hesaplamalar = getHesaplamalar();
     hesaplamalar.push({
         id: Date.now().toString(),
-        tarih: new Date().toISOString(),
+        tarih: new Date(baslangic).toISOString(),
         dataIsmi: dataIsmi,
         temsilciAdi: temsilciAdi,
         verimlilikOrani: verimlilikYuzdesi,
