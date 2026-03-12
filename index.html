@@ -276,7 +276,7 @@
                 <div class="filter-bar">
                     <div class="filter-group">
                         <label for="filterTarih">Tarih Seçin</label>
-                        <input type="date" id="filterTarih">
+                        <input type="date" id="filterTarih" onchange="updateOniu()">
                     </div>
 
                     <div class="filter-group checkbox-group">
@@ -288,12 +288,12 @@
 
                     <div class="filter-group" id="tarihAraligiBolumu" style="display: none;">
                         <label for="filterTarihBaslangic">Başlangıç Tarihi</label>
-                        <input type="date" id="filterTarihBaslangic">
+                        <input type="date" id="filterTarihBaslangic" onchange="updateOniu()">
                     </div>
 
                     <div class="filter-group" id="tarihAraligiBolumu2" style="display: none;">
                         <label for="filterTarihBitis">Bitiş Tarihi</label>
-                        <input type="date" id="filterTarihBitis">
+                        <input type="date" id="filterTarihBitis" onchange="updateOniu()">
                     </div>
 
                     <button class="btn btn-excel" id="btnExcelIndir" onclick="excelIndir()">
@@ -317,7 +317,33 @@
                     </button>
                 </div>
 
-                <div class="gecmis-info-card">
+                <!-- Önizleme Tablosu -->
+                <div id="onizlemeBolumu" style="display: none;">
+                    <div class="onizleme-baslik">
+                        <h3>Önizleme</h3>
+                        <span class="onizleme-kayit-sayisi" id="onizlemeKayitSayisi">0 kayıt</span>
+                    </div>
+                    <div class="onizleme-tablo-container">
+                        <table class="onizleme-tablo" id="onizlemeTablo">
+                            <thead>
+                                <tr>
+                                    <th>Tarih</th>
+                                    <th>Data Detay</th>
+                                    <th>Agent</th>
+                                    <th>Beklenen Arama</th>
+                                    <th>Toplam Arama</th>
+                                    <th>Ulaşılan</th>
+                                    <th>Ulaşım Oranı</th>
+                                    <th>Verimlilik</th>
+                                </tr>
+                            </thead>
+                            <tbody id="onizlemeTabloBody">
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+
+                <div class="gecmis-info-card" id="gecmisInfoCard">
                     <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"
                         stroke-linecap="round" stroke-linejoin="round">
                         <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z" />

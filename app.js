@@ -491,6 +491,112 @@ function toggleTarihAraligi() {
         document.getElementById('filterTarihBaslangic').value = '';
         document.getElementById('filterTarihBitis').value = '';
     }
+    updateOniu();
+}
+
+function updateOniu() {
+    const isAraligi = document.getElementById('chkTarihAraligi').checked;
+    let hesaplamalar = getHesaplamalar();
+
+    if (isAraligi) {
+        // Tarih aralığı modu
+        const baslangic = document.getElementById('filterTarihBaslangic').value;
+        const bitis = document.getElementById('filterTarihBitis').value;
+
+        if (!baslangic || !bitis) {
+            document.getElementById('onizlemeBolumu').style.display = 'none';
+            document.getElementById('gecmisInfoCard').style.display = 'flex';
+            return;
+        }
+
+        const dtBaslangic = new Date(baslangic);
+        const dtBitis = new Date(bitis);
+
+        if (dtBitis < dtBaslangic) {
+            document.getElementById('onizlemeBolumu').style.display = 'none';
+            document.getElementById('gecmisInfoCard').style.display = 'flex';
+            return;
+        }
+
+        const gunBaslangic = new Date(dtBaslangic);
+        gunBaslangic.setHours(0, 0, 0, 0);
+        const gunBitis = new Date(dtBitis);
+        gunBitis.setHours(23, 59, 59, 999);
+
+        hesaplamalar = hesaplamalar.filter(h => {
+            const kayitTarihi = new Date(h.tarih);
+            return kayitTarihi >= gunBaslangic && kayitTarihi <= gunBitis;
+        });
+
+        // Sıralama: Tarih sırasına göre (geçmiş→günümüze, ascending)
+        hesaplamalar.sort((a, b) => {
+            return new Date(a.tarih) - new Date(b.tarih);
+        });
+    } else {
+        // Tek tarih modu
+        const tarih = document.getElementById('filterTarih').value;
+
+        if (!tarih) {
+            document.getElementById('onizlemeBolumu').style.display = 'none';
+            document.getElementById('gecmisInfoCard').style.display = 'flex';
+            return;
+        }
+
+        const secilenTarih = new Date(tarih);
+        const gunBaslangic = new Date(secilenTarih);
+        gunBaslangic.setHours(0, 0, 0, 0);
+        const gunBitis = new Date(secilenTarih);
+        gunBitis.setHours(23, 59, 59, 999);
+
+        hesaplamalar = hesaplamalar.filter(h => {
+            const kayitTarihi = new Date(h.tarih);
+            return kayitTarihi >= gunBaslangic && kayitTarihi <= gunBitis;
+        });
+
+        // Sıralama: Data ismine göre, sonra tarih sirasına göre
+        hesaplamalar.sort((a, b) => {
+            const nameCompare = a.dataIsmi.localeCompare(b.dataIsmi, 'tr');
+            if (nameCompare !== 0) return nameCompare;
+            return new Date(a.tarih) - new Date(b.tarih);
+        });
+    }
+
+    // Tabloyu güncelle
+    if (hesaplamalar.length === 0) {
+        document.getElementById('onizlemeBolumu').style.display = 'none';
+        document.getElementById('gecmisInfoCard').style.display = 'flex';
+        return;
+    }
+
+    // Tablo oluştur
+    const tbody = document.getElementById('onizlemeTabloBody');
+    tbody.innerHTML = hesaplamalar.map(h => {
+        const baslangicTarihi = new Date(h.baslangic);
+        const tarihStr = baslangicTarihi.toLocaleDateString('tr-TR', {
+            year: 'numeric',
+            month: '2-digit',
+            day: '2-digit'
+        });
+        return `
+            <tr>
+                <td>${tarihStr}</td>
+                <td>${h.dataIsmi}</td>
+                <td>${h.temsilciAdi}</td>
+                <td>${h.beklenenAramaHedefi}</td>
+                <td>${h.toplamArama}</td>
+                <td>${h.ulasilanArama}</td>
+                <td>%${(h.ulasimOrani * 100).toFixed(2)}</td>
+                <td>%${h.verimlilikOrani}</td>
+            </tr>
+        `;
+    }).join('');
+
+    // Kayıt sayısını güncelle
+    document.getElementById('onizlemeKayitSayisi').textContent = `${hesaplamalar.length} kayıt`;
+
+    // Tabloyu göster, info kartını gizle
+    document.getElementById('onizlemeBolumu').style.display = 'block';
+    document.getElementById('gecmisInfoCard').style.display = 'none';
 }
 
 // ==========================================
