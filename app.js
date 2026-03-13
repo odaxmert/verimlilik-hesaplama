@@ -141,6 +141,7 @@ function temsilciEkle() {
 
     renderTemsilciListesi();
     populateTemsilciSelect();
+    populateTemsilciGecmisSelect();
     updateStats();
     showToast(`${ad} başarıyla eklendi`, 'success');
 }
@@ -153,6 +154,7 @@ function temsilciSil(id) {
 
     renderTemsilciListesi();
     populateTemsilciSelect();
+    populateTemsilciGecmisSelect();
     updateStats();
     showToast(`${temsilci ? temsilci.ad : 'Temsilci'} silindi`, 'info');
 }
@@ -306,6 +308,10 @@ function switchPage(page) {
         document.getElementById('navGecmisVeriler').classList.add('active');
         document.getElementById('pageGecmis').classList.add('active');
         updateGecmisKayitSayisi();
+    } else if (page === 'gecmisTemsilci') {
+        document.getElementById('navGecmisTemsilci').classList.add('active');
+        document.getElementById('pageGecmisTemsilci').classList.add('active');
+        populateTemsilciGecmisSelect();
     }
 }
 
@@ -587,6 +593,7 @@ function updateOniu() {
                 <td>${h.ulasilanArama}</td>
                 <td>%${(h.ulasimOrani * 100).toFixed(2)}</td>
                 <td>%${h.verimlilikOrani}</td>
+                <td><button class="btn-danger-sm" onclick="hesaplamaSil('${h.id}')">Sil</button></td>
             </tr>
         `;
     }).join('');
@@ -764,6 +771,153 @@ function createAndDownloadExcel(hesaplamalar, secilenTarih, isAraligi = false) {
 }
 
 // ==========================================
+// HESAPLAMA SİLME
+// ==========================================
+
+function hesaplamaSil(id) {
+    let hesaplamalar = getHesaplamalar();
+    hesaplamalar = hesaplamalar.filter(h => h.id !== id);
+    setHesaplamalar(hesaplamalar);
+    updateOniu();
+    updateStats();
+    showToast('Kayıt silindi', 'info');
+}
+
+// ==========================================
+// GEÇMİŞ TEMSİLCİ VERİLERİ
+// ==========================================
+
+function populateTemsilciGecmisSelect() {
+    const select = document.getElementById('selTemsilciGecmis');
+    if (!select) return;
+    const temsilciler = getTemsilciler();
+    const currentValue = select.value;
+
+    select.innerHTML = '<option value="">Temsilci seçin...</option>';
+    temsilciler.forEach(t => {
+        const opt = document.createElement('option');
+        opt.value = t.ad;
+        opt.textContent = t.ad;
+        select.appendChild(opt);
+    });
+
+    if (currentValue && temsilciler.some(t => t.ad === currentValue)) {
+        select.value = currentValue;
+    }
+}
+
+function updateTemsilciOniu() {
+    const temsilciAdi = document.getElementById('selTemsilciGecmis').value;
+
+    if (!temsilciAdi) {
+        document.getElementById('temsilciOnizlemeBolumu').style.display = 'none';
+        document.getElementById('temsilciInfoCard').style.display = 'flex';
+        return;
+    }
+
+    let hesaplamalar = getHesaplamalar();
+    hesaplamalar = hesaplamalar.filter(h => h.temsilciAdi === temsilciAdi);
+
+    // Sıralama: Tarihe göre (yeniden eskiye)
+    hesaplamalar.sort((a, b) => new Date(b.tarih) - new Date(a.tarih));
+
+    if (hesaplamalar.length === 0) {
+        document.getElementById('temsilciOnizlemeBolumu').style.display = 'none';
+        document.getElementById('temsilciInfoCard').style.display = 'flex';
+        return;
+    }
+
+    const tbody = document.getElementById('temsilciOnizlemeTabloBody');
+    tbody.innerHTML = hesaplamalar.map(h => {
+        const baslangicTarihi = new Date(h.baslangic);
+        const tarihStr = baslangicTarihi.toLocaleDateString('tr-TR', {
+            year: 'numeric',
+            month: '2-digit',
+            day: '2-digit'
+        });
+        return `
+            <tr>
+                <td>${tarihStr}</td>
+                <td>${h.dataIsmi}</td>
+                <td>${h.temsilciAdi}</td>
+                <td>${h.beklenenAramaHedefi}</td>
+                <td>${h.toplamArama}</td>
+                <td>${h.ulasilanArama}</td>
+                <td>%${(h.ulasimOrani * 100).toFixed(2)}</td>
+                <td>%${h.verimlilikOrani}</td>
+            </tr>
+        `;
+    }).join('');
+
+    document.getElementById('temsilciOnizlemeKayitSayisi').textContent = `${hesaplamalar.length} kayıt`;
+    document.getElementById('temsilciOnizlemeBolumu').style.display = 'block';
+    document.getElementById('temsilciInfoCard').style.display = 'none';
+}
+
+function temsilciExcelIndir() {
+    const temsilciAdi = document.getElementById('selTemsilciGecmis').value;
+
+    if (!temsilciAdi) {
+        showToast('Lütfen bir temsilci seçin', 'error');
+        return;
+    }
+
+    let hesaplamalar = getHesaplamalar();
+    hesaplamalar = hesaplamalar.filter(h => h.temsilciAdi === temsilciAdi);
+
+    if (hesaplamalar.length === 0) {
+        showToast('Seçilen temsilciye ait kayıt bulunamadı', 'error');
+        return;
+    }
+
+    // Sıralama: Tarihe göre (eskiden yeniye)
+    hesaplamalar.sort((a, b) => new Date(a.tarih) - new Date(b.tarih));
+
+    // Excel verisi oluştur (Geçmiş Veriler ile aynı format)
+    const excelData = hesaplamalar.map(h => {
+        const baslangicTarihi = new Date(h.baslangic);
+        const tarihStr = baslangicTarihi.toLocaleDateString('tr-TR', {
+            year: 'numeric',
+            month: '2-digit',
+            day: '2-digit'
+        });
+        return {
+            'Tarih': tarihStr,
+            'Data Detay': h.dataIsmi,
+            'Agent': h.temsilciAdi,
+            'Beklenen Arama Adedi': h.beklenenAramaHedefi,
+            'Toplam Yapılan Arama': h.toplamArama,
+            'Ulaşılan Arama': h.ulasilanArama,
+            'OB ACHT': h.obAcht,
+            'Ulaşım Oranı': `%${(h.ulasimOrani * 100).toFixed(2)}`,
+            'Verimlilik': `%${h.verimlilikOrani}`
+        };
+    });
+
+    const ws = XLSX.utils.json_to_sheet(excelData);
+    const wb = XLSX.utils.book_new();
+    XLSX.utils.book_append_sheet(wb, ws, 'Verimlilik Raporu');
+
+    ws['!cols'] = [
+        { wch: 12 },
+        { wch: 20 },
+        { wch: 20 },
+        { wch: 18 },
+        { wch: 18 },
+        { wch: 15 },
+        { wch: 10 },
+        { wch: 15 },
+        { wch: 12 }
+    ];
+
+    const safeAd = temsilciAdi.replace(/[^a-zA-Z0-9çÇğĞıİöÖşŞüÜ ]/g, '').replace(/\s+/g, '_');
+    const filename = `Temsilci_Raporu_${safeAd}.xlsx`;
+
+    XLSX.writeFile(wb, filename);
+    showToast(`${hesaplamalar.length} kayıt Excel olarak indirildi`, 'success');
+}
+
+// ==========================================
 // STATS
 // ==========================================
 
@@ -808,6 +962,7 @@ document.addEventListener('keydown', (e) => {
 
 function init() {
     populateTemsilciSelect();
+    populateTemsilciGecmisSelect();
     populateDataSelect();
     updateStats();
 }
